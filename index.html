@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ইজি বাইক ড্রাইভ: গরিবের স্পিড!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #0f172a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background: #1e293b;
+            border: 4px solid #38bdf8;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        /* Road styling */
+        .road {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #334155;
+            animation: moveRoad 1s linear infinite;
+        }
+        @keyframes moveRoad {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 40px; }
+        }
+        .road-lines {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                #facc15 0px,
+                #facc15 20px,
+                transparent 20px,
+                transparent 40px
+            );
+            animation: moveRoad 0.5s linear infinite;
+        }
+        /* Player Easy Bike */
+        #player {
+            position: absolute;
+            bottom: 20px;
+            left: 170px;
+            width: 60px;
+            height: 90px;
+            background: #f87171;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 2px dashed #fee2e2;
+            transition: left 0.1s ease;
+        }
+        /* Obstacle */
+        .obstacle {
+            position: absolute;
+            top: -100px;
+            width: 60px;
+            height: 90px;
+            background: #4ade80;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #064e3b;
+        }
+        /* UI Header */
+        .header {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .score-board {
+            font-size: 18px;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+        /* Dialogue Popup */
+        #dialogue {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #facc15;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            border: 2px solid #facc15;
+            z-index: 10;
+        }
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #0f172a;
+            cursor: pointer;
+        }
+        button:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🛺 ইজি বাইক চ্যালেঞ্জ</h2>
+        <div class="score-board">স্কোর: <span id="score">0</span></div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="road">
+            <div class="road-lines"></div>
+        </div>
+        <div id="player">ইজি বাইক</div>
+        <div id="dialogue">"গরিব মানুষ ভাই, ছাইড়া দেন!"</div>
+    </div>
+
+    <div class="controls">
+        <button onclick="moveLeft()">◀ বামে</button>
+        <button onclick="moveRight()">ডানে ▶</button>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreDisplay = document.getElementById('score');
+        const dialogue = document.getElementById('dialogue');
+
+        let playerX = 170; // initial left
+        let score = 0;
+        let isPlaying = true;
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!isPlaying) return;
+            if (e.key === 'ArrowLeft' && playerX > 40) {
+                playerX -= 60;
+            } else if (e.key === 'ArrowRight' && playerX < 300) {
+                playerX += 60;
+            }
+            player.style.left = playerX + 'px';
+        });
+
+        function moveLeft() {
+            if (playerX > 40) playerX -= 60;
+            player.style.left = playerX + 'px';
+        }
+
+        function moveRight() {
+            if (playerX < 300) playerX += 60;
+            player.style.left = playerX + 'px';
+        }
+
+        // Random obstacles spawner
+        function spawnObstacle() {
+            if (!isPlaying) return;
+
+            const obs = document.createElement('div');
+            obs.classList.add('obstacle');
+            const lanes = [40, 100, 170, 230, 300];
+            const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
+            obs.style.left = randomLane + 'px';
+            
+            const texts = ["ট্রাফিক পুলিশ!", "বাসের ধাক্কা", "ব্যাটারি ডাউন", "যটলা"];
+            obs.innerText = texts[Math.floor(Math.random() * texts.length)];
+
+            gameContainer.appendChild(obs);
+
+            let obsY = -100;
+            let fallInterval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(fallInterval);
+                    return;
+                }
+
+                obsY += 5;
+                obs.style.top = obsY + 'px';
+
+                // Check collision
+                let playerRect = player.getBoundingClientRect();
+                let obsRect = obs.getBoundingClientRect();
+
+                if (
+                    playerRect.left < obsRect.right &&
+                    playerRect.right > obsRect.left &&
+                    playerRect.top < obsRect.bottom &&
+                    playerRect.bottom > obsRect.top
+                ) {
+                    // Hit!
+                    showDialogue();
+                    obs.remove();
+                    clearInterval(fallInterval);
+                    score = Math.max(0, score - 5);
+                }
+
+                // Passed
+                if (obsY > 600) {
+                    obs.remove();
+                    clearInterval(fallInterval);
+                    score += 10;
+                    scoreDisplay.innerText = score;
+                }
+            }, 20);
+
+            setTimeout(spawnObstacle, 2000);
+        }
+
+        function showDialogue() {
+            dialogue.style.display = 'block';
+            setTimeout(() => {
+                dialogue.style.display = 'none';
+            }, 1200);
+        }
+
+        // Start game
+        setTimeout(spawnObstacle, 1000);
+    </script>
+</body>
+</html>
